@@ -1,4 +1,4 @@
-const CACHE_NAME = 'AwQaty-v2';
+const CACHE_NAME = 'AwQaty-v3';
 const ASSETS = [
   './',
   './index.html',
