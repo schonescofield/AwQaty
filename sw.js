@@ -1,4 +1,4 @@
-const CACHE_NAME = 'AwQaty-v9';
+const CACHE_NAME = 'AwQaty-v1.1';
 const ASSETS = [
   './',
   './index.html',
@@ -31,21 +31,27 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request)
-      .then((response) => {
-        
-        if (response) return response;
-
-        return fetch(e.request)
-          .then((networkResponse) => {
-            return networkResponse;
-          })
-          .catch(() => {
-            
-            return caches.match('./offline.html');
+self.addEventListener('fetch', (event) => {
+  if (event.request.mode === 'navigate') {
+    // Network first for index.html
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseClone);
           });
-      })
+          return response;
+        })
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  // Cache first for other assets
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
   );
 });
