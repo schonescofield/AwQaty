@@ -1,10 +1,7 @@
-const CACHE_NAME = 'AwQaty-v1.5';
+const CACHE_NAME = 'AwQaty-v1.6';
 const ASSETS = [
   './',
-  './index.html',
-  './icon-192x192-v2.png',
-  './icon-512x512-v2.png',
-  './icon-512x512-maskable-v2.png'
+  './index.html'
 ];
 
 self.addEventListener('install', (e) => {
