@@ -1,7 +1,7 @@
-const CACHE_NAME = 'AwQaty-v1.6';
+const CACHE_NAME = 'AwQaty-v1.7';
 const ASSETS = [
-  './',
-  './index.html'
+  '/',
+  '/index.html'
 ];
 
 self.addEventListener('install', (e) => {
