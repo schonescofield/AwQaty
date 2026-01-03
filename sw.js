@@ -1,4 +1,4 @@
-const CACHE_NAME = 'AwQaty-v1.8'; // Update this version string when you deploy a new version
+const CACHE_NAME = 'AwQaty-v1.9'; // Update this version string when you deploy a new version
 const ASSETS = [
   '/',
   '/index.html',
