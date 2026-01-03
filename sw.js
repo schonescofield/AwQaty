@@ -1,23 +1,35 @@
-const CACHE_NAME = 'AwQaty-v1.8';
+const CACHE_NAME = 'AwQaty-v1.8'; // Update this version string when you deploy a new version
 const ASSETS = [
   '/',
-  '/index.html'
+  '/index.html',
+  '/favicon-32.png',
+  '/favicon-72.png',
+  '/icon-192x192-v2.png',
+  '/icon-512x512-v2.png',
+  '/icon-512x512-maskable-v2.png',
+  '/manifest.json',
+  '/sw.js'
 ];
 
 self.addEventListener('install', (e) => {
+  // Skip waiting and start using the new service worker immediately
   e.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(ASSETS))
-      .then(() => self.skipWaiting()) 
+      .then((cache) => {
+        return cache.addAll(ASSETS); // Cache all assets during installation
+      })
+      .then(() => self.skipWaiting()) // Make sure the service worker activates immediately
   );
 });
 
 self.addEventListener('activate', (e) => {
-  const currentCaches = [CACHE_NAME];
+  // Remove old caches when the service worker is activated
+  const currentCaches = [CACHE_NAME]; // Only keep the current cache
   e.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
+          // Delete any caches that don't match the current CACHE_NAME
           if (!currentCaches.includes(cacheName)) {
             console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
@@ -25,31 +37,25 @@ self.addEventListener('activate', (e) => {
         })
       );
     })
-    .then(() => self.clients.claim())
+    .then(() => self.clients.claim()) // Make sure this service worker takes control immediately
   );
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.mode === 'navigate') {
-    // Network first for index.html
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseClone);
-          });
-          return response;
-        })
-        .catch(() => caches.match('./index.html'))
-    );
-    return;
-  }
-
-  //Cache first for other assets
-//  event.respondWith(
-//    caches.match(event.request).then((response) => {
-//      return response || fetch(event.request);
-//    })
-//  );
+  // Cache First for all assets (since they're stable once cached)
+  event.respondWith(
+    caches.match(event.request)
+      .then((cachedResponse) => {
+        // If there's a cached version, return it; otherwise, fetch from the network
+        return cachedResponse || fetch(event.request).then((response) => {
+          // Cache the fetched response if it's a new request (e.g., new version)
+          if (event.request.method === 'GET' && response.ok) {
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, response.clone()); // Cache the new version
+            });
+          }
+          return response; // Return the network response
+        });
+      })
+  );
 });
