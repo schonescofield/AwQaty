@@ -1,4 +1,4 @@
-const CACHE_NAME = 'AwQaty-v1.7';
+const CACHE_NAME = 'AwQaty-v1.8';
 const ASSETS = [
   '/',
   '/index.html'
@@ -46,10 +46,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache first for other assets
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+  //Cache first for other assets
+//  event.respondWith(
+//    caches.match(event.request).then((response) => {
+//      return response || fetch(event.request);
+//    })
+//  );
 });
