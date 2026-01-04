@@ -2,11 +2,11 @@ const CACHE_NAME = 'AwQaty-v1.91'; // Update this version string when you deploy
 const ASSETS = [
   '/',
   '/index.html',
-  '/favicon-32.png',
-  '/favicon-72.png',
-  '/icon-192x192-v2.png',
-  '/icon-512x512-v2.png',
-  '/icon-512x512-maskable-v2.png',
+'/favicon.ico',
+'/icon-192.png',
+'/icon-512.png',
+'/icon-192-maskable.png',
+'/icon-512-maskable.png',
   '/manifest.json',
   '/sw.js'
 ];
