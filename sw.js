@@ -1,13 +1,13 @@
-const CACHE_NAME = 'AwQaty-v1.92'; // Update this version string when you deploy a new version
+const CACHE_NAME = 'AwQaty-v1.93'; // Update this version string when you deploy a new version
 const ASSETS = [
   '/',
   '/index.html',
 '/android-launchericon-48-48.png',
-'android-launchericon-72-72.png',
+'/android-launchericon-72-72.png',
 '/android-launchericon-192-192.png',
 '/android-launchericon-512-512.png',
-  '/manifest.json',
-  '/sw.js'
+'/manifest.json',
+'/sw.js'
 ];
 
 self.addEventListener('install', (e) => {
