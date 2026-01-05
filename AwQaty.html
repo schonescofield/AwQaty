@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mebarki Wissal </title>
+
+      <!-- Link to your manifest.json -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Define the theme color for browsers -->
+  <meta name="theme-color" content="#000000">
+  
+  <!-- Favicon  -->
+<link rel="icon" href="/android-launchericon-48-48.png" sizes="48x48">
+<link rel="icon" href="/android-launchericon-72-72.png" sizes="72x72">
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+<!-- Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+
+<style>
+    :root {
+        --primary: #f472b6; /* Pink 400 */
+        --primary-dark: #db2777; /* Pink 600 */
+        --accent: #a855f7; /* Purple 500 */
+        --bg-gradient: linear-gradient(135deg, #fff5f7 0%, #ffffff 50%, #fdf2f8 100%);
+    }
+    
+    body {
+        font-family: 'Tajawal', sans-serif;
+        -webkit-tap-highlight-color: transparent;
+        background: var(--bg-gradient);
+        background-attachment: fixed;
+    }
+
+    .material-icons-round {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        vertical-align: middle;
+    }
+
+    /* Glassmorphism */
+    .glass {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 8px 32px 0 rgba(236, 72, 153, 0.05);
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #f9a8d4; border-radius: 4px; }
+
+    @keyframes pulse-soft {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.02); opacity: 0.9; }
+    }
+
+    @keyframes spin-slow {
+        from { transform: rotate(-90deg); }
+        to { transform: rotate(270deg); }
+    }
+
+    #progress-ring {
+        transition: stroke-dashoffset 1s linear;
+    }
+    
+    .ring-anim {
+        animation: pulse-soft 3s ease-in-out infinite;
+    }
+
+    .prayer-card {
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(244, 114, 182, 0.1);
+    }
+
+    .prayer-card.active-bg {
+        background: linear-gradient(135deg, #f472b6 0%, #d946ef 100%);
+        color: white;
+        box-shadow: 0 15px 25px -5px rgba(244, 114, 182, 0.4);
+        transform: translateY(-2px);
+        border: none;
+    }
+
+    .prayer-card.active-border {
+        border-color: #f472b6;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 10px 15px -3px rgba(244, 114, 182, 0.1);
+    }
+
+    #countdown-section {
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        max-height: 400px;
+        opacity: 1;
+        overflow: hidden;
+    }
+    #countdown-section.collapsed {
+        max-height: 0;
+        opacity: 0;
+        margin: 0;
+        padding: 0;
+        pointer-events: none;
+    }
+    
+    .bottom-sheet { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .bottom-sheet.open { transform: translateY(0); }
+    .bottom-sheet.closed { transform: translateY(100%); }
+
+    .glow-pink {
+        filter: drop-shadow(0 0 8px rgba(244, 114, 182, 0.4));
+    }
+</style>
+</head>
+<body class="text-slate-800 min-h-screen selection:bg-pink-200">
+
+<!-- Modern Header -->
+<header class="pt-6 px-6 pb-6 relative overflow-hidden">
+    <div class="absolute -top-24 -right-24 w-64 h-64 bg-pink-100/50 rounded-full blur-3xl"></div>
+    <div class="absolute -top-12 -left-12 w-48 h-48 bg-purple-100/40 rounded-full blur-3xl"></div>
+    
+    <div class="relative flex justify-between items-start">
+        <div>
+            <h1 class="text-2xl font-extrabold bg-gradient-to-l from-pink-600 to-purple-600 bg-clip-text text-transparent">أوقـاتـي</h1>  <!-- أوقاتي-->
+            <div id="gregorian-date" class="text-sm font-medium text-slate-500 mt-1">...</div>
+        </div>
+        <button id="settings-btn" class="w-10 h-10 rounded-2xl glass flex items-center justify-center text-pink-500 hover:bg-pink-50 transition-all active:scale-90 shadow-sm">
+            <span class="material-icons-round">settings</span>
+        </button>
+    </div>
+
+    <div class="relative mt-4 flex items-center gap-2">
+        <div class="px-3 py-1 rounded-full bg-white/80 border border-pink-100 text-xs font-bold text-pink-600 shadow-sm" id="hijri-date">
+            ...
+        </div>
+        <div class="flex items-center gap-1 text-xs font-bold text-slate-400 bg-slate-100/50 px-3 py-1 rounded-full border border-slate-100">
+            <span class="material-icons-round text-[14px]">place</span>
+            <span id="city-display">الجزائر</span>
+        </div>
+    </div>
+</header>
+
+<!-- Improved Countdown Section -->
+<section id="countdown-section" class="flex flex-col items-center justify-center py-6 collapsed">
+    <div class="relative w-56 h-56 flex items-center justify-center">
+        <!-- Decoration rings -->
+        <div class="absolute inset-0 rounded-full border-4 border-pink-50 opacity-50"></div>
+        <div class="absolute inset-4 rounded-full border border-pink-100/50"></div>
+        
+        <svg class="w-full h-full transform -rotate-90 relative z-10 ring-anim" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-width="2" class="text-pink-50/30" />
+            <circle id="progress-ring" cx="50" cy="50" r="46" fill="none" stroke="url(#pinkGradient)" stroke-width="4" stroke-linecap="round" 
+                    class="glow-pink"
+                    stroke-dasharray="289" stroke-dashoffset="289" />
+            <defs>
+                <linearGradient id="pinkGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#f472b6" />
+                    <stop offset="100%" stop-color="#d946ef" />
+                </linearGradient>
+            </defs>
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center text-center z-20">
+            <span class="px-2 py-0.5 rounded-md bg-pink-100 text-pink-600 text-[10px] font-bold uppercase tracking-wider mb-2">أذان <span id="next-prayer-name">--</span></span>
+            <div id="countdown-timer" class="text-4xl font-black text-slate-800 tracking-tighter">00:00:00</div>
+            <div class="w-1 h-1 rounded-full bg-pink-400 mt-2 animate-bounce"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Prayer Grid -->
+<main class="px-6 pb-2">
+    <div class="space-y-4 mb-8" id="prayer-list">
+        <!-- Cards injected by JS -->
+    </div>
+</main>
+
+<!-- Settings UI -->
+<div id="settings-overlay" class="fixed inset-0 bg-pink-900/10 backdrop-blur-md z-40 hidden opacity-0 transition-opacity duration-300"></div>
+
+<div id="settings-sheet" class="fixed bottom-0 left-0 right-0 bg-white z-50 rounded-t-[2.5rem] shadow-[0_-20px_50px_-12px_rgba(244,114,182,0.15)] bottom-sheet closed h-[85vh] flex flex-col overflow-hidden">
+    <!-- Handle -->
+    <div class="w-full flex justify-center pt-5 pb-3 cursor-pointer" id="sheet-handle">
+        <div class="w-16 h-1.5 bg-pink-100 rounded-full"></div>
+    </div>
+
+    <!-- Header -->
+    <div class="px-8 pb-4 flex justify-between items-center">
+        <div>
+            <h2 class="text-2xl font-extrabold text-slate-800">الإعدادات</h2>
+            <p class="text-xs text-slate-400 mt-1">تخصيص التطبيق حسب رغبتك</p>
+        </div>
+        <button id="close-settings" class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-pink-50 hover:text-pink-500 transition-colors">
+            <span class="material-icons-round">close</span>
+        </button>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto px-8 py-4 space-y-8">
+
+        <!-- Location Selection -->
+        <div class="space-y-4">
+            <div class="flex items-center gap-2">
+                <span class="material-icons-round text-pink-400">my_location</span>
+                <label class="text-sm font-bold text-slate-600">الموقع الحالي</label>
+            </div>
+            <div class="relative">
+                <span class="material-icons-round absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">search</span>
+                <input type="text" id="city-search" placeholder="ابحث عن ولايتك..." 
+                       class="w-full bg-slate-50 border-2 border-transparent focus:border-pink-200 rounded-2xl py-4 pr-12 pl-4 text-sm focus:bg-white outline-none transition-all shadow-sm">
+            </div>
+            <div class="max-h-56 overflow-y-auto rounded-2xl border border-pink-50 hidden glass" id="city-list">
+                <!-- Cities injected here -->
+            </div>
+        </div>
+
+        <!-- Time Adjustments -->
+        <div class="space-y-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="material-icons-round text-pink-400">schedule</span>
+                    <label class="text-sm font-bold text-slate-600">تعديل الأوقات (دقائق)</label>
+                </div>
+                <button id="reset-adjustments" class="text-[10px] font-bold text-white bg-pink-400 px-3 py-1 rounded-full hover:bg-pink-500 transition-colors shadow-sm shadow-pink-200">إعادة تعيين</button>
+            </div>
+            
+            <div id="adjustments-container" class="grid grid-cols-1 gap-3">
+                <!-- Adjustment rows injected here -->
+            </div>
+        </div>
+
+        <!-- Info Card -->
+        <div class="p-5 bg-gradient-to-br from-pink-50 to-purple-50 rounded-3xl border border-white relative overflow-hidden">
+            <div class="absolute -bottom-4 -right-4 w-20 h-20 bg-white/20 rounded-full blur-xl"></div>
+            <div class="flex items-start gap-3 relative z-10">
+                <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-pink-500 shadow-sm">
+                    <span class="material-icons-round text-xl">favorite</span>
+                </div>
+                <div>
+                    <h4 class="font-extrabold text-pink-900 text-sm">ملاحظة</h4>
+                    <p class="text-[11px] text-pink-700/80 mt-1 leading-relaxed">
+                        يتم الحساب وفقاً لمعايير وزارة الشؤون الدينية الجزائرية. 
+                        تم تطوير هذا التطبيق خصيصاً وبكل حب للآنسة <strong>مباركي وصال</strong>.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="h-10"></div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="p-6 pt-2 bg-white/80 backdrop-blur-md">
+        <button id="save-settings" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-extrabold py-4 rounded-2xl shadow-xl shadow-pink-200 transition-all active:scale-95 text-lg">
+            حفظ التغييرات
+        </button>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    // --- CONSTANTS & DATA ---
+    const PRAYER_NAMES = {
+        fajr: { ar: 'الفجر', icon: 'wb_twilight' },
+        dhuhr: { ar: 'الظهر', icon: 'wb_sunny' },
+        asr: { ar: 'العصر', icon: 'wb_cloudy' },
+        maghrib: { ar: 'المغرب', icon: 'nights_stay' },
+        isha: { ar: 'العشاء', icon: 'bedtime' }
+    };
+
+    const ALGERIAN_CITIES = [
+        { id: 1, name: "أدرار", lat: 27.8742, lng: -0.2939 }, { id: 2, name: "الشلف", lat: 36.1654, lng: 1.3345 },
+        { id: 3, name: "الأغواط", lat: 33.8000, lng: 2.8651 }, { id: 4, name: "أم البواقي", lat: 35.8754, lng: 7.1135 },
+        { id: 5, name: "باتنة", lat: 35.5557, lng: 6.1741 }, { id: 6, name: "بجاية", lat: 36.7559, lng: 5.0843 },
+        { id: 7, name: "بسكرة", lat: 34.8500, lng: 5.7333 }, { id: 8, name: "بشار", lat: 31.6167, lng: -2.2167 },
+        { id: 9, name: "البليدة", lat: 36.4700, lng: 2.8277 }, { id: 10, name: "البويرة", lat: 36.3749, lng: 3.9020 },
+        { id: 11, name: "تمنراست", lat: 22.7850, lng: 5.5228 }, { id: 12, name: "تبسة", lat: 35.4042, lng: 8.1242 },
+        { id: 13, name: "تلمسان", lat: 34.8783, lng: -1.3150 }, { id: 14, name: "تيارت", lat: 35.3710, lng: 1.3170 },
+        { id: 15, name: "تيزي وزو", lat: 36.7118, lng: 4.0459 }, { id: 16, name: "الجزائر", lat: 36.7525, lng: 3.0420 },
+        { id: 17, name: "الجلفة", lat: 34.6728, lng: 3.2630 }, { id: 18, name: "جيجل", lat: 36.8206, lng: 5.7667 },
+        { id: 19, name: "سطيف", lat: 36.1905, lng: 5.4137 }, { id: 20, name: "سعيدة", lat: 34.8303, lng: 0.1517 },
+        { id: 21, name: "سكيكدة", lat: 36.8762, lng: 6.9045 }, { id: 22, name: "سيدي بلعباس", lat: 35.1899, lng: -0.6309 },
+        { id: 23, name: "عنابة", lat: 36.9000, lng: 7.7667 }, { id: 24, name: "قالمة", lat: 36.4621, lng: 7.4261 },
+        { id: 25, name: "قسنطينة", lat: 36.3650, lng: 6.6147 }, { id: 26, name: "المدية", lat: 36.2642, lng: 2.7539 },
+        { id: 27, name: "مستغانم", lat: 35.9312, lng: 0.0892 }, { id: 28, name: "المسيلة", lat: 35.7058, lng: 4.5419 },
+        { id: 29, name: "معسكر", lat: 35.3966, lng: 0.1403 }, { id: 30, name: "ورقلة", lat: 31.9493, lng: 5.3250 },
+        { id: 31, name: "وهران", lat: 35.6911, lng: -0.6417 }, { id: 32, name: "البيض", lat: 33.6803, lng: 1.0193 },
+        { id: 33, name: "إليزي", lat: 26.5000, lng: 8.5000 }, { id: 34, name: "برج بوعريريج", lat: 36.0756, lng: 4.7611 },
+        { id: 35, name: "بومرداس", lat: 36.7667, lng: 3.4667 }, { id: 36, name: "الطارف", lat: 36.7672, lng: 8.3138 },
+        { id: 37, name: "تندوف", lat: 27.6711, lng: -8.1474 }, { id: 38, name: "تيسمسيلت", lat: 35.6072, lng: 1.8106 },
+        { id: 39, name: "الوادي", lat: 33.3683, lng: 6.8674 }, { id: 40, name: "خنشلة", lat: 35.4358, lng: 7.1433 },
+        { id: 41, name: "سوق أهراس", lat: 36.2864, lng: 7.9511 }, { id: 42, name: "تيبازة", lat: 36.5942, lng: 2.4430 },
+        { id: 43, name: "ميلة", lat: 36.4503, lng: 6.2644 }, { id: 44, name: "عين الدفلى", lat: 36.2618, lng: 1.9679 },
+        { id: 45, name: "النعامة", lat: 32.7857, lng: -0.3121 }, { id: 46, name: "عين تموشنت", lat: 35.3055, lng: -1.1396 },
+        { id: 47, name: "غرداية", lat: 32.4909, lng: 3.6735 }, { id: 48, name: "غليزان", lat: 35.7373, lng: 0.5558 }
+    ];
+
+// --- CALCULATION LOGIC (FIXED) ---
+    const D2R = Math.PI / 180;
+    const R2D = 180 / Math.PI;
+
+    function dsin(d) { return Math.sin(d * D2R); }
+    function dcos(d) { return Math.cos(d * D2R); }
+    function dtan(d) { return Math.tan(d * D2R); }
+    function darccos(x) { return Math.acos(x) * R2D; }
+    function darccot(x) { return Math.atan(1/x) * R2D; }
+    
+    function fixHour(a) { a = a - 24.0 * Math.floor(a / 24.0); return a < 0 ? a + 24.0 : a; }
+
+    function sunPosition(jd) {
+        const D = jd - 2451545.0;
+        const g = 357.529 + 0.98560028 * D;
+        const q = 280.459 + 0.98564736 * D;
+        const L = q + 1.915 * dsin(g) + 0.020 * dsin(2 * g);
+        const e = 23.439 - 0.00000036 * D;
+        const RA = Math.atan2(dcos(e) * dsin(L), dcos(L)) * R2D / 15.0;
+        const eqt = q/15.0 - fixHour(RA);
+        const decl = Math.asin(dsin(e) * dsin(L)) * R2D;
+        return { decl: decl, eqt: eqt };
+    }
+
+    function getPrayerTimes(date, lat, lng, timezone) {
+        let year = date.getFullYear(), month = date.getMonth() + 1, day = date.getDate();
+        if (month <= 2) { year -= 1; month += 12; }
+        const A = Math.floor(year / 100), B = 2 - A + Math.floor(A / 4);
+        const JD = Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + B - 1524.5;
+        
+        const sp = sunPosition(JD);
+        const Z = 12 - sp.eqt + (timezone - lng / 15.0); 
+
+        const computeTime = (angle) => {
+            const top = -dsin(angle) - dsin(lat) * dsin(sp.decl);
+            const bot = dcos(lat) * dcos(sp.decl);
+            const val = top / bot;
+            if (Math.abs(val) > 1) return 0;
+            return darccos(val) / 15.0;
+        };
+
+        // --- ALGERIAN AUTHORITY PARAMETERS ---
+        // Fajr: 18 degrees
+        // Isha: 17 degrees (This fixes your -4 min issue!)
+        const fajrDiff = computeTime(18);
+        const ishaDiff = computeTime(17); 
+        
+        const maghribDiff = computeTime(0.833);
+        const asrDiff = darccos((dsin(darccot(1 + dtan(Math.abs(lat - sp.decl)))) - dsin(lat) * dsin(sp.decl)) / (dcos(lat) * dcos(sp.decl))) / 15.0;
+
+        // --- BASE TIMES ---
+        const times = {
+            fajr: Z - fajrDiff,
+            dhuhr: Z,
+            asr: Z + asrDiff,
+            maghrib: Z + maghribDiff,
+            isha: Z + ishaDiff
+        };
+
+        const result = {};
+        
+        // --- OFFICIAL SAFETY MINUTES
+        const safety = { 
+            fajr: 0, 
+            dhuhr: 1, 
+            asr: 0, 
+            maghrib: 3, 
+            isha: 0 
+        }; 
+
+        for (let i in times) {
+            let t = fixHour(times[i] + (safety[i] / 60.0));
+            const hours = Math.floor(t);
+            const minutes = Math.floor((t - hours) * 60 + 0.5); 
+            
+            const d = new Date(date); 
+            d.setHours(hours, minutes, 0, 0);
+            if (minutes >= 60) d.setHours(hours + 1, 0);
+            result[i] = d;
+        }
+        return result;
+    }
+
+    // --- APP STATE ---
+    const state = {
+        city: ALGERIAN_CITIES[15],
+        adjustments: { fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 },
+        prayerTimes: []
+    };
+
+    const elements = {
+        cityDisplay: document.getElementById('city-display'),
+        gregorianDate: document.getElementById('gregorian-date'),
+        hijriDate: document.getElementById('hijri-date'),
+        prayerList: document.getElementById('prayer-list'),
+        countdown: document.getElementById('countdown-timer'),
+        nextPrayerName: document.getElementById('next-prayer-name'),
+        progressRing: document.getElementById('progress-ring'),
+        settingsBtn: document.getElementById('settings-btn'),
+        closeSettingsBtn: document.getElementById('close-settings'),
+        settingsSheet: document.getElementById('settings-sheet'),
+        settingsOverlay: document.getElementById('settings-overlay'),
+        citySearch: document.getElementById('city-search'),
+        cityList: document.getElementById('city-list'),
+        saveSettings: document.getElementById('save-settings'),
+        adjustmentsContainer: document.getElementById('adjustments-container'),
+        resetAdjustments: document.getElementById('reset-adjustments')
+    };
+
+    // --- CORE FUNCTIONS ---
+    function init() {
+        loadState();
+        setupEventListeners();
+        renderCityList();
+        renderAdjustments();
+        updateApp();
+        setInterval(updateCountdown, 1000);
+    }
+
+    function loadState() {
+        const saved = localStorage.getItem('prayerApp_state_v2');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            state.city = parsed.city || state.city;
+            state.adjustments = parsed.adjustments || state.adjustments;
+        }
+    }
+
+    function saveState() {
+        localStorage.setItem('prayerApp_state_v2', JSON.stringify({
+            city: state.city,
+            adjustments: state.adjustments
+        }));
+    }
+
+    function updateApp() {
+        const now = new Date();
+        const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+        elements.gregorianDate.textContent = new Intl.DateTimeFormat('ar-DZ', dateOptions).format(now);
+        
+        const hijriOptions = { day: 'numeric', month: 'long', year: 'numeric', calendar: 'islamic-umalqura' };
+        elements.hijriDate.textContent = new Intl.DateTimeFormat('ar-DZ-u-ca-islamic', hijriOptions).format(now);
+        
+        elements.cityDisplay.textContent = state.city.name;
+
+        const times = getPrayerTimes(now, state.city.lat, state.city.lng, 1);
+        state.prayerTimes = Object.keys(PRAYER_NAMES).map(key => {
+            const time = new Date(times[key]);
+            time.setMinutes(time.getMinutes() + (state.adjustments[key] || 0));
+            return { id: key, name: PRAYER_NAMES[key].ar, icon: PRAYER_NAMES[key].icon, time: time };
+        });
+
+        renderPrayerList();
+        updateCountdown();
+    }
+
+    function renderPrayerList() {
+        elements.prayerList.innerHTML = '';
+        const now = new Date();
+        let nextP = state.prayerTimes.find(p => p.time > now) || state.prayerTimes[0];
+
+        state.prayerTimes.forEach(p => {
+            const isActive = (p === nextP && (p.time - now > 0));
+            const isPassed = (p.time < now && p !== nextP);
+            
+            const card = document.createElement('div');
+            card.className = `prayer-card rounded-[2rem] p-3 flex items-center justify-between shadow-sm border ${isActive ? 'active-bg' : 'bg-white/70'}`;
+            
+            card.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center ${isActive ? 'bg-white/20' : 'bg-pink-50 text-pink-500'}">
+                        <span class="material-icons-round text-2xl">${p.icon}</span>
+                    </div>
+                    <div>
+                        <span class="block font-extrabold text-lg ${isActive ? 'text-white' : 'text-slate-700'}">${p.name}</span>
+                        ${isActive ? '<span class="text-[10px] text-pink-100 font-bold uppercase tracking-wider">الصلاة القادمة</span>' : ''}
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xl font-black pl-2 ${isActive ? 'text-white' : 'text-slate-600'} tracking-tight">
+                        ${p.time.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    </div>
+                </div>
+            `;
+            elements.prayerList.appendChild(card);
+        });
+    }
+
+    function updateCountdown() {
+        const now = new Date();
+        let nextP = state.prayerTimes.find(p => p.time > now);
+        
+        if (!nextP) {
+            const tomorrowFajr = new Date(state.prayerTimes[0].time);
+            tomorrowFajr.setDate(tomorrowFajr.getDate() + 1);
+            nextP = { ...state.prayerTimes[0], time: tomorrowFajr };
+        }
+
+        const diffMs = nextP.time - now;
+        const diffMins = diffMs / (1000 * 60);
+
+        const countdownSection = document.getElementById('countdown-section');
+        if (diffMins <= 60) {
+            countdownSection.classList.remove('collapsed');
+            elements.nextPrayerName.textContent = nextP.name;
+            
+            const h = Math.floor(diffMs / 3600000), m = Math.floor((diffMs % 3600000) / 60000), s = Math.floor((diffMs % 60000) / 1000);
+            elements.countdown.textContent = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+            // Calculate percentage (from 1 at 60 mins down to 0 at 0 mins)
+            const percent = diffMs / (60 * 60 * 1000); 
+            // Invert so it fills up or drains clearly
+            elements.progressRing.style.strokeDashoffset = 289 * (1 - percent);
+        } else {
+            countdownSection.classList.add('collapsed');
+        }
+
+        if (now.getSeconds() === 0 && now.getMilliseconds() < 1000) renderPrayerList();
+    }
+
+    // --- UI ACTIONS ---
+    function renderCityList() {
+        elements.cityList.innerHTML = '';
+        ALGERIAN_CITIES.forEach(city => {
+            const div = document.createElement('div');
+            div.className = `p-4 hover:bg-pink-50 cursor-pointer flex justify-between items-center border-b border-pink-50/50 last:border-0 transition-all ${city.id === state.city.id ? 'bg-pink-50/50 text-pink-600 font-bold' : ''}`;
+            div.innerHTML = `<span>${city.name}</span>${city.id === state.city.id ? '<span class="material-icons-round text-sm">check_circle</span>' : ''}`;
+            div.onclick = () => {
+                state.city = city;
+                elements.citySearch.value = city.name;
+                elements.cityList.classList.add('hidden');
+                renderCityList();
+                updateApp();
+            };
+            elements.cityList.appendChild(div);
+        });
+    }
+
+    function renderAdjustments() {
+        elements.adjustmentsContainer.innerHTML = '';
+        Object.keys(PRAYER_NAMES).forEach(key => {
+            const val = state.adjustments[key] || 0;
+            const row = document.createElement('div');
+            row.className = 'flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl border border-slate-100 shadow-sm';
+            row.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <span class="material-icons-round text-pink-300">${PRAYER_NAMES[key].icon}</span>
+                    <span class="text-sm font-bold text-slate-700">${PRAYER_NAMES[key].ar}</span>
+                </div>
+                <div class="flex items-center gap-4" dir="ltr">
+                    <button class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-pink-500" onclick="adjust('${key}', -1)">-</button>
+                    <span class="w-8 text-center font-black text-slate-800 text-sm" id="adj-${key}">${val > 0 ? '+'+val : val}</span>
+                    <button class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-pink-500" onclick="adjust('${key}', 1)">+</button>
+                </div>
+            `;
+            elements.adjustmentsContainer.appendChild(row);
+        });
+    }
+
+    window.adjust = (key, delta) => {
+        state.adjustments[key] = Math.max(-60, Math.min(60, (state.adjustments[key] || 0) + delta));
+        document.getElementById(`adj-${key}`).textContent = state.adjustments[key] > 0 ? '+'+state.adjustments[key] : state.adjustments[key];
+    };
+
+    function setupEventListeners() {
+        const toggle = (open) => {
+            if (open) {
+                elements.settingsOverlay.classList.remove('hidden');
+                setTimeout(() => { elements.settingsOverlay.classList.remove('opacity-0'); elements.settingsSheet.className = elements.settingsSheet.className.replace('closed', 'open'); }, 10);
+            } else {
+                elements.settingsSheet.className = elements.settingsSheet.className.replace('open', 'closed');
+                elements.settingsOverlay.classList.add('opacity-0');
+                setTimeout(() => elements.settingsOverlay.classList.add('hidden'), 300);
+            }
+        };
+
+        elements.settingsBtn.onclick = () => toggle(true);
+        elements.closeSettingsBtn.onclick = () => toggle(false);
+        elements.settingsOverlay.onclick = () => toggle(false);
+        elements.citySearch.onfocus = () => elements.cityList.classList.remove('hidden');
+        elements.citySearch.oninput = (e) => {
+            const q = e.target.value.trim();
+            Array.from(elements.cityList.children).forEach(child => {
+                child.style.display = child.textContent.includes(q) ? 'flex' : 'none';
+            });
+        };
+        elements.saveSettings.onclick = () => { saveState(); toggle(false); updateApp(); };
+        elements.resetAdjustments.onclick = () => { state.adjustments = { fajr: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 }; renderAdjustments(); };
+    }
+
+    init();
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW Registered!', reg.scope))
+                    .catch(err => console.log('SW Failed:', err));
+            });
+        }
+</script>
+</body>
+</html>
