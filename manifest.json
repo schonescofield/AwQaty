@@ -7,19 +7,19 @@
   "theme_color": "#000000",
   "orientation": "portrait",
       "icons": [
-        { "src": "/android-launchericon-48-48.png",
+        { "src": "android-launchericon-48-48.png",
             "type": "image/png",
             "sizes": "48x48" },
-        { "src": "/android-launchericon-72-72.png",
+        { "src": "android-launchericon-72-72.png",
             "type": "image/png",
             "sizes": "72x72" },
-        { "src": "/android-launchericon-192-192.png",
+        { "src": "android-launchericon-192-192.png",
             "type": "image/png",
             "sizes": "192x192",
-            "purpose": "any"},
-        { "src": "/android-launchericon-512-512.png",
+            "purpose": "any maskable"},
+        { "src": "android-launchericon-512-512.png",
             "type": "image/png",
             "sizes": "512x512",
-            "purpose": "any"}
+            "purpose": "any maskable"}
       ]
 }
