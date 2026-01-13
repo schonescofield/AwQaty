@@ -5,6 +5,7 @@ const ASSETS = [
 '/android-launchericon-48-48.png',
 '/android-launchericon-72-72.png',
 '/android-launchericon-192-192.png',
+'/android-launchericon-512-512.png'،
 '/manifest.json',
 '/sw.js'
 ];
