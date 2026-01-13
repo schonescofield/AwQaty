@@ -3,8 +3,8 @@
   "name": "AwQaty",
   "start_url": "index.html",
   "display": "standalone", 
-  "background_color": "#ffffff", 
-  "theme_color": "#000000",
+  "background_color": "#693CE5", 
+  "theme_color": "#BE33A6",
   "orientation": "portrait",
       "icons": [
         { "src": "android-launchericon-48-48.png",
